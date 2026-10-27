@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Internship Application Tracker</title>
+  <link rel="stylesheet" href="styles.css"><script src="app.js" defer></script>
+</head>
+<body>
+<main>
+  <header><p class="eyebrow">YOUR NEXT STEP</p><h1>Internship Application Tracker</h1><p>Keep your opportunities and progress in one place.</p></header>
+  <p id="message" role="status" aria-live="polite"></p>
+  <section aria-labelledby="form-title">
+    <h2 id="form-title">Add Application</h2>
+    <form id="application-form">
+      <div class="grid">
+        <label>Company name *<input name="companyName" required maxlength="120" autocomplete="organization"></label>
+        <label>Role title *<input name="roleTitle" required maxlength="120"></label>
+        <label>Status *<select name="status"><option>Saved</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option></select></label>
+        <label>Date applied<input name="dateApplied" type="date"></label>
+      </div>
+      <label>Notes<textarea name="notes" rows="3" maxlength="2000" placeholder="Next steps, contacts, or interview notes"></textarea></label>
+      <div class="actions"><button id="save-button" type="submit">Add Application</button><button id="cancel-button" type="button" class="secondary" hidden>Cancel edit</button></div>
+    </form>
+  </section>
+  <section aria-labelledby="list-title">
+    <h2 id="list-title">Your applications</h2>
+    <form id="filter-form" class="filters">
+      <label>Search company or role<input id="search" type="search" placeholder="Company or role title"></label>
+      <label>Filter by status<select id="filter-status"><option value="">All statuses</option><option>Saved</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option></select></label>
+      <button type="submit">Search</button>
+    </form>
+    <p id="count"></p>
+    <div class="table-wrap"><table><thead><tr><th>Company</th><th>Role</th><th>Status</th><th>Date applied</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="applications"></tbody></table></div>
+    <p id="empty" hidden>No applications match. Add an application or change your filters.</p>
+  </section>
+</main>
+</body>
+</html>
