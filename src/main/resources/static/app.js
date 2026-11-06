@@ -10,7 +10,13 @@ function showMessage(text, isError = false) {
 }
 
 async function request(path, options = {}) {
+  const sessionResponse = await fetch('/api/session');
+  if (sessionResponse.status === 401) { location.href = '/login'; throw new Error('Please sign in.'); }
+  const session = await sessionResponse.json();
+  options.headers = { ...options.headers };
+  if (session.headerName) options.headers[session.headerName] = session.token;
   const response = await fetch('/api/applications' + path, options);
+  if (response.status === 401) { location.href = '/login'; throw new Error('Please sign in.'); }
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     const details = error.errors ? Object.values(error.errors).join('; ') : '';
@@ -114,3 +120,21 @@ document.querySelector('#filter-form').addEventListener('submit', event => {
 });
 document.querySelector('#filter-status').addEventListener('change', loadApplications);
 loadApplications();
+
+
+async function initializeSession() {
+  const response = await fetch('/api/session');
+  if (response.status === 401) { location.href = '/login'; return; }
+  if (!response.ok) return;
+  const session = await response.json();
+  if (!session.token) return;
+  document.querySelector('#access-notice').textContent = 'Private workspace — only you and your authorized automation can access your records.';
+  const logout = document.querySelector('#logout-button');
+  logout.hidden = false;
+  logout.addEventListener('click', async () => {
+    const current = await fetch('/api/session').then(r => r.json());
+    const result = await fetch('/logout', { method: 'POST', headers: { [current.headerName]: current.token } });
+    if (result.ok || result.redirected) location.href = '/login?logout';
+  });
+}
+initializeSession().catch(() => {});

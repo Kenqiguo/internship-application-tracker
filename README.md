@@ -152,3 +152,15 @@ The demo profile seeds five fictional applications into an in-memory H2 database
 All existing CRUD, search, filtering and validation features remain available.
 Visitors share the same demo records; records reset on every restart. Do not use real personal data.
 The Docker build runs the API test suite before packaging. Local defaults retain the original file database and loopback binding.
+
+## Private deployment
+
+Activate ONLY the `private` Spring profile. Required server environment variables:
+- TRACKER_PASSWORD_HASH: `{bcrypt}` plus an encoded owner password. Username is `owner`.
+- MUSE_TOKEN_SHA256: hexadecimal SHA-256 of a randomly generated 32-byte or stronger access token.
+- TRACKER_DATABASE_URL: PostgreSQL JDBC URL using TLS (`sslmode=require`).
+- TRACKER_DATABASE_USER and TRACKER_DATABASE_PASSWORD: database credentials.
+
+Set Render health check to `/healthz`. Browser authentication uses a secure HttpOnly SameSite session cookie and CSRF protection. The API accepts Muse's `Authorization: Bearer TOKEN` for read/create/update; DELETE is prohibited for Muse. Change the stored token hash and redeploy to revoke an old token. Never commit credentials or actual application records.
+
+Use a database with the public Data API disabled. If enabling it later, restrict grants and enable RLS before exposing any tables. Import real records only after anonymous access returns 401 and persistent database connections are verified.

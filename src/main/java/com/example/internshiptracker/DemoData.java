@@ -7,7 +7,7 @@ import org.springframework.context.annotation.*;
 import java.time.LocalDate;
 
 @Configuration
-@Profile("demo")
+@Profile("demo & !private")
 public class DemoData {
     @Bean
     CommandLineRunner seedDemo(InternshipApplicationRepository repository) {
@@ -27,3 +27,4 @@ public class DemoData {
         };
     }
 }
+
