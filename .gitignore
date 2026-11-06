@@ -10,3 +10,4 @@ runtime.pid
 .env
 .env.*
 .neon
+node_modules/
