@@ -177,8 +177,10 @@ One repository, two free Render web services defined in `render.yaml`, both buil
 | `TRACKER_PASSWORD_HASH` | `{bcrypt}` hash of the owner password |
 | `MUSE_TOKEN_SHA256` | SHA-256 hex of the automation token |
 
-Generate the last two locally with `python scripts/tracker_cloud.py secrets` in the job-auto-apply project
-(the token is stored in Windows Credential Manager; only its hash goes to Render).
+Prepare them locally in the job-auto-apply project: `python scripts/tracker_cloud.py render-env` (database
+settings + automation-token hash) and `python scripts/tracker_cloud.py set-password` (you type the owner password
+twice; only its bcrypt hash is saved). Confirm with `check-password`. The automation token is stored in Windows
+Credential Manager; only its hash goes to Render.
 
 ### Costs (as of November 2026)
 
@@ -203,8 +205,8 @@ Upgrade paths if needed: Render Starter web service (always on, about $7/month) 
 
 - **Deploys**: every push to `main` redeploys both services automatically (Render auto-deploy). A failing test
   stops the Docker build, so a broken commit never replaces the running version.
-- **Change the owner password**: run `tracker_cloud.py secrets`, paste the new `TRACKER_PASSWORD_HASH` (and
-  `MUSE_TOKEN_SHA256`) in Render > internship-tracker-private > Environment, then Save (redeploys).
+- **Change the owner password**: run `tracker_cloud.py set-password`, paste the new `TRACKER_PASSWORD_HASH` in
+  Render > internship-tracker-private > Environment, then Save (redeploys).
 - **Revoke the automation token**: same as above; the old token stops working after the redeploy.
 - **Check health**: `python scripts/tracker_cloud.py verify`, or open `/healthz` on either service.
 - **Logs**: Render dashboard > service > Logs. Database usage: Neon console > Monitoring.
