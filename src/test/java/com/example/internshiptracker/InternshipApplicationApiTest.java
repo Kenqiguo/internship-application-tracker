@@ -100,4 +100,39 @@ class InternshipApplicationApiTest {
         assertEquals(200, send("GET", "/app.js", null).statusCode());
         assertEquals(200, send("GET", "/styles.css", null).statusCode());
     }
+
+    @Test void newStatusesAndOptionalDetailsAreSaved() throws Exception {
+        var created = send("POST", "/api/applications", """
+            {"companyName":"Acme","roleTitle":"SWE Intern","status":"OA","dateApplied":"2026-11-01",
+             "location":"Remote","jobUrl":"https://example.com/jobs/1","requisitionId":"R-1",
+             "resumeVersion":"general_swe","source":"automation","visaNotes":"No sponsorship restriction found",
+             "externalId":"job-1"}
+            """);
+        assertEquals(201, created.statusCode());
+        JsonNode body = mapper.readTree(created.body());
+        assertEquals("OA", body.get("status").asText());
+        assertEquals("R-1", body.get("requisitionId").asText());
+        long id = body.get("id").asLong();
+        // An older client that only sends the original fields must not erase the details.
+        var updated = send("PUT", "/api/applications/" + id, input("Acme", "SWE Intern", "RecruiterReachout"));
+        assertEquals(200, updated.statusCode());
+        JsonNode after = mapper.readTree(updated.body());
+        assertEquals("RecruiterReachout", after.get("status").asText());
+        assertEquals("https://example.com/jobs/1", after.get("jobUrl").asText());
+        assertEquals("general_swe", after.get("resumeVersion").asText());
+    }
+
+    @Test void lookupFindsByAnyIdentifier() throws Exception {
+        send("POST", "/api/applications", """
+            {"companyName":"Acme","roleTitle":"SWE Intern","status":"Applied","requisitionId":"R-9",
+             "jobUrl":"https://example.com/jobs/9","externalId":"job-9"}
+            """);
+        send("POST", "/api/applications", input("Other", "Data Intern", "Applied"));
+        assertEquals(1, mapper.readTree(send("GET", "/api/applications/lookup?requisitionId=R-9", null).body()).size());
+        assertEquals(1, mapper.readTree(send("GET", "/api/applications/lookup?externalId=job-9", null).body()).size());
+        assertEquals(1, mapper.readTree(send("GET", "/api/applications/lookup?jobUrl=https://example.com/jobs/9", null).body()).size());
+        assertEquals(1, mapper.readTree(send("GET", "/api/applications/lookup?company=acme&role=swe%20intern", null).body()).size());
+        assertEquals(0, mapper.readTree(send("GET", "/api/applications/lookup?company=acme", null).body()).size());
+        assertEquals(0, mapper.readTree(send("GET", "/api/applications/lookup", null).body()).size());
+    }
 }

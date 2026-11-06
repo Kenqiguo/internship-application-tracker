@@ -3,6 +3,8 @@ const message = document.querySelector('#message');
 const saveButton = document.querySelector('#save-button');
 let editingId = null;
 let loadVersion = 0;
+const STATUS_LABELS = { OA: 'Online Assessment', RecruiterReachout: 'Recruiter Reachout' };
+const FORM_FIELDS = ['companyName', 'roleTitle', 'status', 'dateApplied', 'notes', 'location', 'jobUrl', 'requisitionId', 'resumeVersion', 'source', 'confirmedAt', 'visaNotes'];
 
 function showMessage(text, isError = false) {
   message.textContent = text;
@@ -47,10 +49,18 @@ async function loadApplications() {
     document.querySelector('#empty').hidden = applications.length !== 0;
     for (const application of applications) {
       const row = document.createElement('tr');
-      for (const value of [application.companyName, application.roleTitle, application.status, application.dateApplied || '—', application.notes || '—']) {
+      for (const value of [application.companyName, application.roleTitle, application.location || '—', STATUS_LABELS[application.status] || application.status, application.dateApplied || '—', application.notes || '—']) {
         const cell = document.createElement('td');
         cell.textContent = value; // Display user input as text, never as HTML.
         row.append(cell);
+      }
+      if (application.jobUrl && /^https?:\/\//i.test(application.jobUrl)) {
+        const link = document.createElement('a');
+        link.href = application.jobUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = application.roleTitle;
+        row.children[1].replaceChildren(link);
       }
       const actions = document.createElement('td');
       const edit = document.createElement('button');
@@ -59,7 +69,7 @@ async function loadApplications() {
       edit.setAttribute('aria-label', `Edit ${application.companyName}`);
       edit.addEventListener('click', () => {
         editingId = application.id;
-        for (const key of ['companyName', 'roleTitle', 'status', 'dateApplied', 'notes']) {
+        for (const key of FORM_FIELDS) {
           form.elements[key].value = application[key] || '';
         }
         document.querySelector('#form-title').textContent = 'Edit Application';
@@ -95,6 +105,7 @@ form.addEventListener('submit', async event => {
   input.companyName = input.companyName.trim();
   input.roleTitle = input.roleTitle.trim();
   input.dateApplied = input.dateApplied || null;
+  input.confirmedAt = input.confirmedAt || null;
   if (!input.companyName || !input.roleTitle) {
     showMessage('Company name and role title are required.', true);
     return;

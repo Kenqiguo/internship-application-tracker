@@ -25,6 +25,6 @@ public class ApiExceptionHandler {
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<Map<String, Object>> malformedInput(Exception exception) {
         return ResponseEntity.badRequest().body(Map.of("message",
-            "Invalid input. Use a numeric ID, a YYYY-MM-DD date, and status Saved, Applied, Interview, Offer, or Rejected."));
+            "Invalid input. Use a numeric ID, a YYYY-MM-DD date, and status Saved, Applied, OA, Interview, RecruiterReachout, Offer, or Rejected."));
     }
 }

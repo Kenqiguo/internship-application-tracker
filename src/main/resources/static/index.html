@@ -15,10 +15,22 @@
       <div class="grid">
         <label>Company name *<input name="companyName" required maxlength="120" autocomplete="organization"></label>
         <label>Role title *<input name="roleTitle" required maxlength="120"></label>
-        <label>Status *<select name="status"><option>Saved</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option></select></label>
+        <label>Status *<select name="status"><option>Saved</option><option>Applied</option><option value="OA">Online Assessment</option><option>Interview</option><option value="RecruiterReachout">Recruiter Reachout</option><option>Offer</option><option>Rejected</option></select></label>
         <label>Date applied<input name="dateApplied" type="date"></label>
       </div>
       <label>Notes<textarea name="notes" rows="3" maxlength="2000" placeholder="Next steps, contacts, or interview notes"></textarea></label>
+      <details>
+        <summary>More details (optional)</summary>
+        <div class="grid">
+          <label>Location<input name="location" maxlength="255"></label>
+          <label>Job URL<input name="jobUrl" type="url" maxlength="1000"></label>
+          <label>Requisition ID<input name="requisitionId" maxlength="120"></label>
+          <label>Resume version<input name="resumeVersion" maxlength="60"></label>
+          <label>Source<input name="source" maxlength="120"></label>
+          <label>Confirmation received<input name="confirmedAt" type="date"></label>
+        </div>
+        <label>Visa / work authorization notes<textarea name="visaNotes" rows="2" maxlength="1000"></textarea></label>
+      </details>
       <div class="actions"><button id="save-button" type="submit">Add Application</button><button id="cancel-button" type="button" class="secondary" hidden>Cancel edit</button></div>
     </form>
   </section>
@@ -26,11 +38,11 @@
     <h2 id="list-title">Your applications</h2>
     <form id="filter-form" class="filters">
       <label>Search company or role<input id="search" type="search" placeholder="Company or role title"></label>
-      <label>Filter by status<select id="filter-status"><option value="">All statuses</option><option>Saved</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option></select></label>
+      <label>Filter by status<select id="filter-status"><option value="">All statuses</option><option>Saved</option><option>Applied</option><option value="OA">Online Assessment</option><option>Interview</option><option value="RecruiterReachout">Recruiter Reachout</option><option>Offer</option><option>Rejected</option></select></label>
       <button type="submit">Search</button>
     </form>
     <p id="count"></p>
-    <div class="table-wrap"><table><thead><tr><th>Company</th><th>Role</th><th>Status</th><th>Date applied</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="applications"></tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th>Company</th><th>Role</th><th>Location</th><th>Status</th><th>Date applied</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="applications"></tbody></table></div>
     <p id="empty" hidden>No applications match. Add an application or change your filters.</p>
   </section>
 </main>

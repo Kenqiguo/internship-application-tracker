@@ -23,6 +23,15 @@ public class InternshipApplicationController {
         return service.findAll(status, search);
     }
 
+    @GetMapping("/lookup")
+    public List<InternshipApplication> lookup(@RequestParam(required = false) String externalId,
+                                             @RequestParam(required = false) String requisitionId,
+                                             @RequestParam(required = false) String jobUrl,
+                                             @RequestParam(required = false) String company,
+                                             @RequestParam(required = false) String role) {
+        return service.lookup(externalId, requisitionId, jobUrl, company, role);
+    }
+
     @GetMapping("/{id}")
     public InternshipApplication get(@PathVariable Long id) { return service.findById(id); }
 

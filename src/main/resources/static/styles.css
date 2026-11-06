@@ -30,5 +30,8 @@ td button { padding: 7px 10px; margin: 0 5px 5px 0; }
 #message { min-height: 24px; color: #24645c; }
 #message.error { color: #a02020; }
 :focus-visible { outline: 3px solid #439bd1; outline-offset: 2px; }
+details { margin-bottom: 16px; }
+summary { cursor: pointer; font-weight: 600; margin-bottom: 12px; }
+td a { color: #22685d; }
 [hidden] { display: none !important; }
 @media (max-width: 650px) { .grid { grid-template-columns: 1fr; } .filters { display: block; } section { padding: 18px; } }

@@ -14,7 +14,9 @@ A beginner-friendly application for recording internship opportunities, updating
 ## Main features
 
 - Add, list, view by ID, edit, and delete applications.
-- Track Saved, Applied, Interview, Offer, and Rejected statuses.
+- Track Saved, Applied, Online Assessment (OA), Interview, Recruiter Reachout, Offer, and Rejected statuses.
+- Optional details per application: location, job URL, requisition ID, resume version, source, visa/work-authorization notes, and confirmation date.
+- Older databases are upgraded automatically on startup (the status column changes from an H2 ENUM to text so new statuses can be stored; existing data is kept).
 - Filter by status and search company or role, case-insensitively; combine both.
 - Store optional application dates and notes.
 - Validate required company, role, and status. Company and role allow 120 characters each; notes allow 2,000.
@@ -58,6 +60,9 @@ The first build needs internet access to download dependencies. If port 8080 is 
 | DELETE | `/api/applications/1` | Delete; returns 204 or 404 |
 | GET | `/api/applications?status=Interview` | Filter by exact status |
 | GET | `/api/applications?search=java` | Search company or role |
+| GET | `/api/applications/lookup?requisitionId=R-1` | Find possible duplicates by `externalId`, `requisitionId`, `jobUrl`, or exact `company` + `role` |
+
+PUT replaces the original five fields. The optional detail fields keep their stored value when a request omits them (send an empty string to clear one), so older clients never erase details.
 | GET | `/api/applications?status=Applied&search=java` | Combine filter and search |
 
 POST and PUT accept `Content-Type: application/json` with this body:

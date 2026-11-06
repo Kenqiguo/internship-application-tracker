@@ -1,5 +1,5 @@
 package com.example.internshiptracker.model;
 
 public enum ApplicationStatus {
-    Saved, Applied, Interview, Offer, Rejected
+    Saved, Applied, OA, Interview, RecruiterReachout, Offer, Rejected
 }
