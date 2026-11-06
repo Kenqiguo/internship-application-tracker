@@ -144,3 +144,11 @@ Stop-Process -Id ([int](Get-Content runtime.pid))
 ```
 
 Only use that command for the current verification instance. Normal foreground runs can be stopped with Ctrl+C.
+
+## Public Render demo
+
+Deploy this repository using the included render.yaml Blueprint (free Docker web service).
+The demo profile seeds five fictional applications into an in-memory H2 database.
+All existing CRUD, search, filtering and validation features remain available.
+Visitors share the same demo records; records reset on every restart. Do not use real personal data.
+The Docker build runs the API test suite before packaging. Local defaults retain the original file database and loopback binding.

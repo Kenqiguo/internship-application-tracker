@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: internship-application-tracker
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/applications
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: demo
+      - key: PORT
+        value: "10000"
