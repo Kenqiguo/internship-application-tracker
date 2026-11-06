@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("private")
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT, properties={
  "spring.datasource.url=jdbc:h2:mem:private-test;DB_CLOSE_DELAY=-1", "spring.datasource.username=sa",
- "spring.datasource.password=", "server.servlet.session.cookie.secure=false", "spring.jpa.hibernate.ddl-auto=create-drop"
+ "spring.datasource.password=", "spring.sql.init.mode=never", "spring.jpa.properties.hibernate.default_schema=PUBLIC", "server.servlet.session.cookie.secure=false", "spring.jpa.hibernate.ddl-auto=create-drop"
 })
 class PrivateAccessTest {
  @LocalServerPort int port;
@@ -64,4 +64,5 @@ class PrivateAccessTest {
    assertEquals(204,request(c,"DELETE","/api/applications/"+id,null,csrf.get("headerName").asText(),csrf.get("token").asText()).statusCode());
  }
 }
+
 
