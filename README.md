@@ -194,7 +194,7 @@ Upgrade paths if needed: Render Starter web service (always on, about $7/month) 
 - **Neon point-in-time restore**: free plan keeps a 6-hour history (up to 1 GB of changes). Restore from the Neon
   console: Branches > Restore.
 - **Daily JSON backup** (job-auto-apply project): `python scripts/tracker_cloud.py backup` saves every cloud record to
-  `internship-application-tracker-runtimeackups\cloud\` and keeps the newest 90 files.
+  `internship-application-tracker-runtime\backups\cloud\` and keeps the newest 90 files.
 - **Full dump** (any time): `pg_dump "postgresql://USER:PASSWORD@HOST/DB?sslmode=require" -n tracker > tracker.sql`.
 - The local H2 tracker on this computer is untouched and remains a separate copy.
 - Restore from a JSON backup by re-running the import against an empty database (records are POSTed, never deleted).
