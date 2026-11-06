@@ -1,11 +1,39 @@
+# Render Blueprint: two free Docker web services built from this repository.
+#  - internship-tracker-demo:    public portfolio demo, fictional data in memory (resets on restart)
+#  - internship-tracker-private: owner-only tracker, real data in an external PostgreSQL database (Neon)
+# The demo service has no database credentials at all, so it can never read private records.
 services:
   - type: web
-    name: internship-application-tracker
+    name: internship-tracker-demo
     runtime: docker
     plan: free
-    healthCheckPath: /api/applications
+    region: virginia
+    healthCheckPath: /healthz
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: demo
       - key: PORT
         value: "10000"
+
+  - type: web
+    name: internship-tracker-private
+    runtime: docker
+    plan: free
+    region: virginia
+    healthCheckPath: /healthz
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: private
+      - key: PORT
+        value: "10000"
+      # Values below are entered in the Render dashboard when the Blueprint is created (never committed).
+      - key: TRACKER_DATABASE_URL        # jdbc:postgresql://HOST/DBNAME?sslmode=require
+        sync: false
+      - key: TRACKER_DATABASE_USER
+        sync: false
+      - key: TRACKER_DATABASE_PASSWORD
+        sync: false
+      - key: TRACKER_PASSWORD_HASH       # {bcrypt}... for username "owner"
+        sync: false
+      - key: MUSE_TOKEN_SHA256           # SHA-256 hex of the automation access token
+        sync: false

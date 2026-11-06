@@ -150,22 +150,64 @@ Stop-Process -Id ([int](Get-Content runtime.pid))
 
 Only use that command for the current verification instance. Normal foreground runs can be stopped with Ctrl+C.
 
-## Public Render demo
+## Live deployment
 
-Deploy this repository using the included render.yaml Blueprint (free Docker web service).
-The demo profile seeds five fictional applications into an in-memory H2 database.
-All existing CRUD, search, filtering and validation features remain available.
-Visitors share the same demo records; records reset on every restart. Do not use real personal data.
-The Docker build runs the API test suite before packaging. Local defaults retain the original file database and loopback binding.
+| Site | URL | Access |
+|---|---|---|
+| Public demo | DEMO_URL | Anyone. Five fictional applications; changes reset whenever the server restarts. |
+| Private tracker | PRIVATE_URL | Owner login only (username `owner`). Real data in PostgreSQL. |
 
-## Private deployment
+### Architecture
 
-Activate ONLY the `private` Spring profile. Required server environment variables:
-- TRACKER_PASSWORD_HASH: `{bcrypt}` plus an encoded owner password. Username is `owner`.
-- MUSE_TOKEN_SHA256: hexadecimal SHA-256 of a randomly generated 32-byte or stronger access token.
-- TRACKER_DATABASE_URL: PostgreSQL JDBC URL using TLS (`sslmode=require`).
-- TRACKER_DATABASE_USER and TRACKER_DATABASE_PASSWORD: database credentials.
+One repository, two free Render web services defined in `render.yaml`, both built from the same `Dockerfile`
+(the build runs the full test suite before packaging):
 
-Set Render health check to `/healthz`. Browser authentication uses a secure HttpOnly SameSite session cookie and CSRF protection. The API accepts Muse's `Authorization: Bearer TOKEN` for read/create/update; DELETE is prohibited for Muse. Change the stored token hash and redeploy to revoke an old token. Never commit credentials or actual application records.
+- **internship-tracker-demo** runs the `demo` profile: in-memory H2, fictional seed data, capped at 100 records,
+  no login. It has **no database credentials**, so it cannot read or change private records.
+- **internship-tracker-private** runs the `private` profile: PostgreSQL on Neon (free tier) in a private `tracker`
+  schema over TLS, owner form login with a secure HttpOnly SameSite session cookie, CSRF protection, and an
+  automation bearer token that can read/create/update but never delete. Anonymous API calls get `401`.
 
-Use a database with the public Data API disabled. If enabling it later, restrict grants and enable RLS before exposing any tables. Import real records only after anonymous access returns 401 and persistent database connections are verified.
+### Configuration (private service, set in the Render dashboard, never committed)
+
+| Variable | Value |
+|---|---|
+| `TRACKER_DATABASE_URL` | `jdbc:postgresql://<neon-host>/<database>?sslmode=require` |
+| `TRACKER_DATABASE_USER` / `TRACKER_DATABASE_PASSWORD` | Neon role and password |
+| `TRACKER_PASSWORD_HASH` | `{bcrypt}` hash of the owner password |
+| `MUSE_TOKEN_SHA256` | SHA-256 hex of the automation token |
+
+Generate the last two locally with `python scripts/tracker_cloud.py secrets` in the job-auto-apply project
+(the token is stored in Windows Credential Manager; only its hash goes to Render).
+
+### Costs (as of November 2026)
+
+| Item | Plan | Cost |
+|---|---|---|
+| Render web services (x2) | Free: 750 instance-hours/month shared by the workspace; sleeps after 15 min idle, ~1 min to wake | $0 |
+| Neon PostgreSQL | Free: 1 GB storage, 100 CU-hours/month, suspends after 5 min idle | $0 |
+
+Upgrade paths if needed: Render Starter web service (always on, about $7/month) or Neon Launch plan.
+
+### Backups and retention
+
+- **Neon point-in-time restore**: free plan keeps a 6-hour history (up to 1 GB of changes). Restore from the Neon
+  console: Branches > Restore.
+- **Daily JSON backup** (job-auto-apply project): `python scripts/tracker_cloud.py backup` saves every cloud record to
+  `internship-application-tracker-runtimeackups\cloud\` and keeps the newest 90 files.
+- **Full dump** (any time): `pg_dump "postgresql://USER:PASSWORD@HOST/DB?sslmode=require" -n tracker > tracker.sql`.
+- The local H2 tracker on this computer is untouched and remains a separate copy.
+- Restore from a JSON backup by re-running the import against an empty database (records are POSTed, never deleted).
+
+### Maintenance
+
+- **Deploys**: every push to `main` redeploys both services automatically (Render auto-deploy). A failing test
+  stops the Docker build, so a broken commit never replaces the running version.
+- **Change the owner password**: run `tracker_cloud.py secrets`, paste the new `TRACKER_PASSWORD_HASH` (and
+  `MUSE_TOKEN_SHA256`) in Render > internship-tracker-private > Environment, then Save (redeploys).
+- **Revoke the automation token**: same as above; the old token stops working after the redeploy.
+- **Check health**: `python scripts/tracker_cloud.py verify`, or open `/healthz` on either service.
+- **Logs**: Render dashboard > service > Logs. Database usage: Neon console > Monitoring.
+- **Schema**: Hibernate `ddl-auto=update` adds new columns automatically; it never drops data.
+- **Free-tier watch**: Neon emails when you approach limits; Render suspends free services if the 750 hours run out
+  (unlikely, because idle services sleep).

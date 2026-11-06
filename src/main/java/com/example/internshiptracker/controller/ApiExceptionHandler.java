@@ -14,6 +14,11 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 
+    @ExceptionHandler(com.example.internshiptracker.service.RecordLimitException.class)
+    public ResponseEntity<Map<String, Object>> limit(RuntimeException exception) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("message", exception.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> validation(MethodArgumentNotValidException exception) {
         Map<String, String> fields = new TreeMap<>();

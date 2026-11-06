@@ -138,6 +138,11 @@ async function initializeSession() {
   if (response.status === 401) { location.href = '/login'; return; }
   if (!response.ok) return;
   const session = await response.json();
+  if (session.mode === 'demo') {
+    document.querySelector('#access-notice').textContent =
+      'Public demo with fictional sample data. Try adding, editing, filtering, or deleting; changes reset when the server restarts.';
+    return;
+  }
   if (!session.token) return;
   document.querySelector('#access-notice').textContent = 'Private workspace — only you and your authorized automation can access your records.';
   const logout = document.querySelector('#logout-button');

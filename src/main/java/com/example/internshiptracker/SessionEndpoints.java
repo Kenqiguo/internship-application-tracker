@@ -1,5 +1,7 @@
 package com.example.internshiptracker;
+import java.util.HashMap;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.web.csrf.CsrfToken;
 
@@ -17,7 +19,12 @@ public class SessionEndpoints {
             """.formatted(token == null ? "" : token.getToken());
     }
     @GetMapping("/healthz") public Map<String,String> health() { return Map.of("status", "ok"); }
+    @Value("${app.mode:local}") String mode;
+
     @GetMapping("/api/session") public Map<String,String> session(CsrfToken token) {
-        return token == null ? Map.of() : Map.of("headerName", token.getHeaderName(), "token", token.getToken());
+        Map<String,String> out = new HashMap<>();
+        out.put("mode", mode);
+        if (token != null) { out.put("headerName", token.getHeaderName()); out.put("token", token.getToken()); }
+        return out;
     }
 }

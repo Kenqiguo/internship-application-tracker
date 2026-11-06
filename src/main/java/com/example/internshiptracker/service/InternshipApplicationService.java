@@ -3,6 +3,7 @@ package com.example.internshiptracker.service;
 import com.example.internshiptracker.model.*;
 import com.example.internshiptracker.repository.InternshipApplicationRepository;
 import com.example.internshiptracker.controller.ApplicationNotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -12,9 +13,13 @@ import java.util.function.Consumer;
 @Transactional
 public class InternshipApplicationService {
     private final InternshipApplicationRepository repository;
+    // 0 = unlimited. The public demo sets a cap so shared visitors cannot fill its memory.
+    private final long maxRecords;
 
-    public InternshipApplicationService(InternshipApplicationRepository repository) {
+    public InternshipApplicationService(InternshipApplicationRepository repository,
+                                        @Value("${app.max-records:0}") long maxRecords) {
         this.repository = repository;
+        this.maxRecords = maxRecords;
     }
 
     @Transactional(readOnly = true)
@@ -37,6 +42,9 @@ public class InternshipApplicationService {
 
     public InternshipApplication create(InternshipApplication application) {
         application.setId(null); // Only the database assigns new IDs.
+        if (maxRecords > 0 && repository.count() >= maxRecords) {
+            throw new RecordLimitException(maxRecords);
+        }
         normalize(application);
         return repository.save(application);
     }
