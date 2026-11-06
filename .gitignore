@@ -5,3 +5,8 @@ data/
 *.log
 runtime.pid
 ~$*
+
+# local secrets (for example DATABASE_URL written by neon init)
+.env
+.env.*
+.neon
