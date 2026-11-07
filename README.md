@@ -154,8 +154,8 @@ Only use that command for the current verification instance. Normal foreground r
 
 | Site | URL | Access |
 |---|---|---|
-| Public demo | DEMO_URL | Anyone. Five fictional applications; changes reset whenever the server restarts. |
-| Private tracker | PRIVATE_URL | Owner login only (username `owner`). Real data in PostgreSQL. |
+| Private tracker | https://internship-tracker-private.onrender.com | Owner login only (username `owner`). Real data in Neon PostgreSQL. |
+| Public demo | not deployed yet (optional) | Can be created from the `internship-tracker-demo` entry in `render.yaml`. |
 
 ### Architecture
 
@@ -186,7 +186,7 @@ Credential Manager; only its hash goes to Render.
 
 | Item | Plan | Cost |
 |---|---|---|
-| Render web services (x2) | Free: 750 instance-hours/month shared by the workspace; sleeps after 15 min idle, ~1 min to wake | $0 |
+| Render web service | Free: 750 instance-hours/month shared by the workspace; sleeps after 15 min idle, ~1 min to wake | $0 |
 | Neon PostgreSQL | Free: 1 GB storage, 100 CU-hours/month, suspends after 5 min idle | $0 |
 
 Upgrade paths if needed: Render Starter web service (always on, about $7/month) or Neon Launch plan.
@@ -203,8 +203,10 @@ Upgrade paths if needed: Render Starter web service (always on, about $7/month) 
 
 ### Maintenance
 
-- **Deploys**: every push to `main` redeploys both services automatically (Render auto-deploy). A failing test
-  stops the Docker build, so a broken commit never replaces the running version.
+- **Deploys**: the private service was created through the Render API from the public repo URL, so pushes do
+  NOT auto-deploy. After pushing to `main`, run `python scripts/tracker_cloud.py render-redeploy` (job-auto-apply
+  project) or click Manual Deploy > Deploy latest commit in Render. A failing test stops the Docker build, and a
+  version that fails its health check is not switched in, so the running site stays up.
 - **Change the owner password**: run `tracker_cloud.py set-password`, paste the new `TRACKER_PASSWORD_HASH` in
   Render > internship-tracker-private > Environment, then Save (redeploys).
 - **Revoke the automation token**: same as above; the old token stops working after the redeploy.
@@ -213,3 +215,15 @@ Upgrade paths if needed: Render Starter web service (always on, about $7/month) 
 - **Schema**: Hibernate `ddl-auto=update` adds new columns automatically; it never drops data.
 - **Free-tier watch**: Neon emails when you approach limits; Render suspends free services if the 750 hours run out
   (unlikely, because idle services sleep).
+
+### Automation (Muse / job-auto-apply) integration
+
+- After an application is confirmed submitted, job-auto-apply calls `POST /api/applications` (or `PUT` if it already
+  exists) with company, role, date applied, status, location, job URL, requisition ID, resume version, source,
+  visa notes, and notes. Confirmation / OA / interview / rejection emails later update the status.
+- Authentication: `Authorization: Bearer <token>`. Only the token's SHA-256 is stored on Render; the token itself is
+  in Windows Credential Manager on the job-auto-apply computer. It can read/create/update, never delete.
+- Duplicates: each record carries `externalId = jobauto-<sha256 of the official job URL>`; before creating, the
+  client checks `/api/applications/lookup` by externalId, requisition ID (same company only), job URL, and
+  company + role, and updates the match instead of inserting.
+- If the tracker is asleep or down, updates wait in job-auto-apply's local queue and are retried every 10 minutes.
