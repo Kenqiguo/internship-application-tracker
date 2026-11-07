@@ -6,7 +6,11 @@ import com.example.internshiptracker.controller.ApplicationNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 
 @Service
@@ -36,8 +40,14 @@ public class InternshipApplicationService {
     @Transactional(readOnly = true)
     public List<InternshipApplication> lookup(String externalId, String requisitionId, String jobUrl,
                                               String company, String role) {
-        return repository.lookup(blankToNull(externalId), blankToNull(requisitionId), blankToNull(jobUrl),
-            blankToNull(company), blankToNull(role));
+        Map<Long, InternshipApplication> found = new TreeMap<>(Comparator.reverseOrder()); // newest first, no repeats
+        if (blankToNull(externalId) != null) repository.findByExternalId(externalId.trim()).forEach(a -> found.put(a.getId(), a));
+        if (blankToNull(requisitionId) != null) repository.findByRequisitionId(requisitionId.trim()).forEach(a -> found.put(a.getId(), a));
+        if (blankToNull(jobUrl) != null) repository.findByJobUrl(jobUrl.trim()).forEach(a -> found.put(a.getId(), a));
+        if (blankToNull(company) != null && blankToNull(role) != null) {
+            repository.findByCompanyNameIgnoreCaseAndRoleTitleIgnoreCase(company.trim(), role.trim()).forEach(a -> found.put(a.getId(), a));
+        }
+        return new ArrayList<>(found.values());
     }
 
     public InternshipApplication create(InternshipApplication application) {

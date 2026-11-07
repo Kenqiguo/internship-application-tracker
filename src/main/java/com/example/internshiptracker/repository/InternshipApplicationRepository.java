@@ -18,19 +18,10 @@ public interface InternshipApplicationRepository extends JpaRepository<Internshi
     List<InternshipApplication> search(@Param("status") ApplicationStatus status,
                                       @Param("search") String search);
 
-    // Each condition only applies when its parameter is provided.
-    @Query("""
-        SELECT a FROM InternshipApplication a
-        WHERE (:externalId IS NOT NULL AND a.externalId = :externalId)
-           OR (:requisitionId IS NOT NULL AND a.requisitionId = :requisitionId)
-           OR (:jobUrl IS NOT NULL AND a.jobUrl = :jobUrl)
-           OR (:company IS NOT NULL AND :role IS NOT NULL
-               AND LOWER(a.companyName) = LOWER(:company) AND LOWER(a.roleTitle) = LOWER(:role))
-        ORDER BY a.id DESC
-        """)
-    List<InternshipApplication> lookup(@Param("externalId") String externalId,
-                                      @Param("requisitionId") String requisitionId,
-                                      @Param("jobUrl") String jobUrl,
-                                      @Param("company") String company,
-                                      @Param("role") String role);
+    // Separate derived queries (no optional parameters inside SQL): portable across H2 and PostgreSQL,
+    // where a NULL parameter inside LOWER(...) fails with "function lower(bytea) does not exist".
+    List<InternshipApplication> findByExternalId(String externalId);
+    List<InternshipApplication> findByRequisitionId(String requisitionId);
+    List<InternshipApplication> findByJobUrl(String jobUrl);
+    List<InternshipApplication> findByCompanyNameIgnoreCaseAndRoleTitleIgnoreCase(String companyName, String roleTitle);
 }
